@@ -75,7 +75,9 @@ export class MatrixCommandHandler {
                     cat: "events",
                     level: PROVISIONING_DEFAULT_POWER_LEVEL,
                     selfService: true,
-                    subcat: "m.room.power_levels",
+                    //subcat: "m.room.power_levels",
+                    // use default power level (50)
+                    subcat: null,
                 },
                 run: async ({guildId, channelId}) => {
                     if (roomEntry && roomEntry.remote) {
