@@ -77,7 +77,7 @@ export class MatrixCommandHandler {
                     selfService: true,
                     //subcat: "m.room.power_levels",
                     // use default power level (50)
-                    subcat: null,
+                    subcat: "null",
                 },
                 run: async ({guildId, channelId}) => {
                     if (roomEntry && roomEntry.remote) {
