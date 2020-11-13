@@ -119,7 +119,7 @@ export class MatrixCommandHandler {
                     cat: "events",
                     level: PROVISIONING_DEFAULT_POWER_LEVEL,
                     selfService: true,
-                    subcat: "m.room.power_levels",
+                    subcat: "null",
                 },
                 run: async () => {
                     if (!roomEntry || !roomEntry.remote) {
