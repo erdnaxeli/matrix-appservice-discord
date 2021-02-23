@@ -40,6 +40,15 @@ export class Provisioner {
         return this.roomStore.linkRooms(local, remote);
     }
 
+    /**
+     * Returns if the room count limit has been reached.
+     * This can be set by the bridge admin and prevents new rooms from being bridged.
+     * @returns Has the limit been reached?
+     */
+    public async RoomCountLimitReached(limit: number): Promise<boolean> {
+        return limit >= 0 && await this.roomStore.countEntries() >= limit;
+    }
+
     public async UnbridgeChannel(channel: Discord.TextChannel, rId?: string) {
         const roomsRes = await this.roomStore.getEntriesByRemoteRoomData({
             discord_channel: channel.id,
@@ -89,9 +98,9 @@ export class Provisioner {
                 resolve("Approved");
             } else {
                 if (expired) {
-                    reject(Error("Timed out waiting for a response from the Discord owners"));
+                    reject(Error("Timed out waiting for a response from the Discord owners."));
                 } else {
-                    reject(Error("The bridge has been declined by the Discord guild"));
+                    reject(Error("The bridge has been declined by the Discord guild."));
                 }
             }
         };
@@ -100,7 +109,7 @@ export class Provisioner {
         setTimeout(() => approveFn(false, true), timeout);
 
         await channel.send(`${requestor} on matrix would like to bridge this channel. Someone with permission` +
-            " to manage webhooks please reply with `!matrix approve` or `!matrix deny` in the next 5 minutes");
+            " to manage webhooks please reply with `!matrix approve` or `!matrix deny` in the next 5 minutes.");
         return await deferP;
 
     }

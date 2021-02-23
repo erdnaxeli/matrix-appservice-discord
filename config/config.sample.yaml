@@ -1,13 +1,15 @@
-# This is a sample of the config file showing all avaliable options.
+# This is a sample of the config file showing all available options.
 # Where possible we have documented what they do, and all values are the
 # default values.
 
 bridge:
   # Domain part of the bridge, e.g. matrix.org
   domain: "localhost"
-  # This should be your publically facing URL because Discord may use it to
+  # This should be your publicly-facing URL because Discord may use it to
   # fetch media from the media store.
   homeserverUrl: "http://localhost:8008"
+  # The TCP port on which the appservice runs on.
+  port: 9005
   # Interval at which to process users in the 'presence queue'. If you have
   # 5 users, one user will be processed every 500 milliseconds according to the
   # value below. This has a minimum value of 250.
@@ -21,6 +23,9 @@ bridge:
   disableTypingNotifications: false
   # Disable deleting messages on Discord if a message is redacted on Matrix.
   disableDeletionForwarding: false
+  # Disable portal bridging, where Matrix users can search for unbridged Discord
+  # rooms on their Matrix server.
+  disablePortalBridging: false
   # Enable users to bridge rooms using !discord commands. See
   # https://t2bot.io/discord for instructions.
   enableSelfServiceBridging: false
@@ -38,7 +43,7 @@ auth:
   # This MUST be a string (wrapped in quotes)
   clientID: "12345"
   botToken: "foobar"
-  # You must enable "Privileged Gateway Intents" in your bot settings on discord.com (e.g.g https://discord.com/developers/applications/12345/bot)
+  # You must enable "Privileged Gateway Intents" in your bot settings on discord.com (e.g. https://discord.com/developers/applications/12345/bot)
   # for this to work
   usePrivilegedIntents: false
 logging:
@@ -84,21 +89,28 @@ channel:
        unsetRoomAlias: true
        # Remove the room from the directory.
        unlistFromDirectory: true
-       # Set the room to be unavaliable for joining without an invite.
+       # Set the room to be unavailable for joining without an invite.
        setInviteOnly: true
        # Make all the discord users leave the room.
        ghostsLeave: true
 limits:
     # Delay in milliseconds between discord users joining a room.
     roomGhostJoinDelay: 6000
-    # Lock timeout in milliseconds before seinding messages to discord to avoid
+    # Lock timeout in milliseconds before sending messages to discord to avoid
     # echos. Default is rather high as the lock will most likely time out
     # before anyways.
     # echos = (Copies of a sent message may arrive from discord before we've
     # fininished handling it, causing us to echo it back to the room)
     discordSendDelay: 1500
+    # Set a maximum of rooms to be bridged.
+    # roomCount: 20
 ghosts:
     # Pattern for the ghosts nick, available is :nick, :username, :tag and :id
     nickPattern: ":nick"
     # Pattern for the ghosts username, available is :username, :tag and :id
     usernamePattern: ":username#:tag"
+# Prometheus-compatible metrics endpoint
+metrics:
+    enable: false
+    port: 9001
+    host: "127.0.0.1"

@@ -10,6 +10,8 @@ properties:
             type: "string"
           homeserverUrl:
             type: "string"
+          port:
+            type: "number"
           presenceInterval:
             type: "number"
           disablePresence:
@@ -17,6 +19,8 @@ properties:
           disableTypingNotifications:
             type: "boolean"
           disableDeletionForwarding:
+            type: "boolean"
+          disablePortalBridging:
             type: "boolean"
           enableSelfServiceBridging:
             type: "boolean"
@@ -93,6 +97,8 @@ properties:
                 type: "number"
             discordSendDelay:
                 type: "number"
+            roomCount:
+                type: "number"
     channel:
         type: "object"
         properties:
@@ -121,4 +127,13 @@ properties:
             nickPattern:
                 type: "string"
             usernamePattern:
+                type: "string"
+    metrics:
+        type: "object"
+        properties:
+            enable:
+                type: "boolean"
+            port:
+                type: "number"
+            host:
                 type: "string"

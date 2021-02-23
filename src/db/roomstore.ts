@@ -17,7 +17,7 @@ import { Log } from "../log";
 import { IDatabaseConnector } from "./connector";
 import { Util } from "../util";
 
-import * as uuid from "uuid/v4";
+import { v4 as uuid } from "uuid";
 import { MetricPeg } from "../metrics";
 import { TimedCache } from "../structures/timedcache";
 
@@ -52,7 +52,7 @@ export class RemoteStoreRoom {
     public data: IRemoteRoomDataLazy;
     constructor(public readonly roomId: string, data: IRemoteRoomDataLazy) {
         for (const k of ["discord_guild", "discord_channel", "discord_name",
-        "discord_topic", "discord_iconurl", "discord_iconurl_mxc", "discord_type"]) {
+            "discord_topic", "discord_iconurl", "discord_iconurl_mxc", "discord_type"]) {
             data[k] = typeof(data[k]) === "number" ? String(data[k]) : data[k] || null;
         }
         for (const k of ["update_name", "update_topic", "update_icon", "plumbed"]) {
@@ -98,6 +98,29 @@ export class DbRoomStore {
         this.entriesMatrixIdCache = new TimedCache(ENTRY_CACHE_LIMETIME);
     }
 
+    /**
+     * Returns the number of bridged room pairs. Every connection between a
+     * Matrix room and a remote room counts as one pair.
+     * @returns {number} The amount of room pairs as an integer
+     */
+    public async countEntries(): Promise<number> {
+        const row = (await this.db.Get("SELECT COUNT(*) AS count FROM room_entries WHERE matrix_id IS NOT NULL AND remote_id IS NOT NULL")) || {};
+
+        // Our Sqlite wrapper returns a number – which is what we want.
+        let count = row.count;
+        // Our PostgreSQL wrapper returns a string.
+        if (typeof count === 'string') {
+            count = Number.parseInt(count);
+        }
+
+        if (typeof count !== "number") {
+            log.error("Failed to count room entries");
+            throw Error(`Failed to count room entries ${JSON.stringify(row)} AND ${typeof count}`);
+        }
+
+        return count;
+    }
+
     public async upsertEntry(entry: IRoomStoreEntry) {
         const promises: Promise<void>[] = [];
 
@@ -112,7 +135,7 @@ export class DbRoomStore {
             };
             try {
                 await this.db.Run(`INSERT INTO room_entries VALUES ($id, $matrix, $remote)`, values);
-                log.verbose("Created new entry " + entry.id);
+                log.verbose(`Created new entry ${entry.id}`);
             } catch (ex) {
                 log.error("Failed to insert room entry", ex);
                 throw Error("Failed to insert room entry");
@@ -173,7 +196,7 @@ export class DbRoomStore {
                     {remoteId},
                 );
                 if (row) {
-                    // tslint:disable-next-line no-any
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     remote = new RemoteStoreRoom(remoteId, row as any);
                 }
             }
@@ -209,7 +232,7 @@ export class DbRoomStore {
                     {rid: remoteId},
                 );
                 if (row) {
-                    // tslint:disable-next-line no-any
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     remote = new RemoteStoreRoom(remoteId, row as any);
                 }
             }
@@ -237,7 +260,7 @@ export class DbRoomStore {
 
         try {
             await this.db.Run(`INSERT INTO room_entries VALUES ($id, $matrix, $remote)`, values);
-            log.verbose("Created new entry " + values.id);
+            log.verbose(`Created new entry ${values.id}`);
         } catch (ex) {
             log.error("Failed to insert room entry", ex);
             throw Error("Failed to insert room entry");
@@ -261,7 +284,7 @@ export class DbRoomStore {
         SELECT * FROM remote_room_data
         INNER JOIN room_entries ON remote_room_data.room_id = room_entries.remote_id
         WHERE ${whereClaues}`;
-        // tslint:disable-next-line no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (await this.db.All(sql, data as any)).map((row) => {
             const id = row.id as string;
             const matrixId = row.matrix_id;
@@ -269,7 +292,7 @@ export class DbRoomStore {
             return {
                 id,
                 matrix: matrixId ? new MatrixStoreRoom(matrixId as string) : null,
-                // tslint:disable-next-line no-any
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 remote: matrixId ? new RemoteStoreRoom(remoteId as string, row as any) : null,
             };
         });
@@ -305,6 +328,7 @@ export class DbRoomStore {
         );
 
         const data = {
+            /* eslint-disable @typescript-eslint/camelcase */
             discord_channel:     room.data.discord_channel,
             discord_guild:       room.data.discord_guild,
             discord_iconurl:     room.data.discord_iconurl,
@@ -316,12 +340,13 @@ export class DbRoomStore {
             update_icon:         Number(room.data.update_icon || 0),
             update_name:         Number(room.data.update_name || 0),
             update_topic:        Number(room.data.update_topic || 0),
+            /* eslint-enable @typescript-eslint/camelcase */
         } as IRemoteRoomData;
 
         if (!existingRow) {
             // Insert new data.
             await this.db.Run(
-            `INSERT INTO remote_room_data VALUES (
+                `INSERT INTO remote_room_data VALUES (
                 $id,
                 $discord_guild,
                 $discord_channel,
@@ -336,11 +361,11 @@ export class DbRoomStore {
                 $plumbed
             )
             `,
-            {
-                id: room.roomId,
-                // tslint:disable-next-line no-any
-                ...data as any,
-            });
+                {
+                    id: room.roomId,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    ...data as any,
+                });
             return;
         }
 
@@ -349,8 +374,8 @@ export class DbRoomStore {
         // New keys
         Object.keys(room.data).filter(
             (k: string) => existingRow[k] === null).forEach((key) => {
-                const val = room.data[key];
-                keysToUpdate[key] = typeof val === "boolean" ? Number(val) : val;
+            const val = room.data[key];
+            keysToUpdate[key] = typeof val === "boolean" ? Number(val) : val;
         });
 
         // Updated keys
@@ -370,12 +395,12 @@ export class DbRoomStore {
 
         try {
             await this.db.Run(`UPDATE remote_room_data SET ${setStatement} WHERE room_id = $id`,
-            {
-                id: room.roomId,
-                // tslint:disable-next-line no-any
-                ...keysToUpdate as any,
-            });
-            log.verbose("Upserted room " + room.roomId);
+                {
+                    id: room.roomId,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    ...keysToUpdate as any,
+                });
+            log.verbose(`Upserted room ${  room.roomId}`);
         } catch (ex) {
             log.error("Failed to upsert room", ex);
             throw Error("Failed to upsert room");

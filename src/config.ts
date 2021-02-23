@@ -35,7 +35,7 @@ export class DiscordBridgeConfig {
      * @param newConfig Config keys
      * @param configLayer Private parameter
      */
-    // tslint:disable-next-line no-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public applyConfig(newConfig: {[key: string]: any}, configLayer: {[key: string]: any} = this) {
           Object.keys(newConfig).forEach((key) => {
             if (configLayer[key] instanceof Object && !(configLayer[key] instanceof Array)) {
@@ -53,10 +53,10 @@ export class DiscordBridgeConfig {
      * @param configLayer private parameter: current layer of configuration to alter recursively
      */
     public applyEnvironmentOverrides(
-        // tslint:disable-next-line no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         environment: {[key: string]: any},
         path: string[] = [ENV_PREFIX],
-        // tslint:disable-next-line no-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         configLayer: {[key: string]: any} = this,
     ) {
         Object.keys(configLayer).forEach((key) => {
@@ -89,6 +89,7 @@ class DiscordBridgeConfigBridge {
     public disableDiscordMentions: boolean;
     public disableDeletionForwarding: boolean;
     public enableSelfServiceBridging: boolean;
+    public disablePortalBridging: boolean;
     public disableReadReceipts: boolean;
     public disableEveryoneMention: boolean = false;
     public disableHereMention: boolean = false;
@@ -140,6 +141,7 @@ export class DiscordBridgeConfigChannelDeleteOptions {
 class DiscordBridgeConfigLimits {
     public roomGhostJoinDelay: number = 6000;
     public discordSendDelay: number = 1500;
+    public roomCount: number = -1;
 }
 
 export class LoggingFile {
@@ -158,7 +160,7 @@ class DiscordBridgeConfigGhosts {
 }
 
 export class DiscordBridgeConfigMetrics {
-    public enable: boolean;
+    public enable: boolean = false;
     public port: number = 9001;
     public host: string = "127.0.0.1";
 }
